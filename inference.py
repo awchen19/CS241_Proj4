@@ -261,6 +261,7 @@ class ParticleFilter(InferenceModule):
         InferenceModule.__init__(self, ghostAgent);
         self.setNumParticles(numParticles)
 
+        
     def setNumParticles(self, numParticles):
         self.numParticles = numParticles
 
@@ -285,10 +286,7 @@ class ParticleFilter(InferenceModule):
         for i in range(self.numParticles):
             self.particles.append(self.legalPositions[i % posCount])
 
-        self.beliefs = self.getBeliefDistribution()
-        for i in range(self.numParticles):
-            self.beliefs[i] = 1;
-            
+    
     def observe(self, observation, gameState):
         """
         Update beliefs based on the given distance observation. Make sure to
@@ -320,21 +318,27 @@ class ParticleFilter(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
+        
+        self.beliefs = self.getBeliefDistribution()
+        
         if (noisyDistance == None):
             for particle in self.particles:
                 particle = self.getJailPosition()
+            self.beliefs[self.getJailPosition()] = 1.0
+            self.beliefs.normalize()
+            return
                 
         else:
            # for particle in util.nSample(self.beliefs,self.particles,10):
-            #for particle in util.sample(self.beliefs,self.particles):
+            #for particle in util.sample(self.beliefs):
             for particle in self.particles:
                 trueDistance = util.manhattanDistance(particle, pacmanPosition)
                 self.beliefs[particle] = emissionModel[trueDistance] * self.beliefs[particle]
+        self.beliefs.normalize() 
                 
         if ((self.beliefs.totalCount) == 0):
             initializeUniformly(gameState)
 
-        return self.beliefs
             
     def elapseTime(self, gameState):
         """
@@ -361,10 +365,12 @@ class ParticleFilter(InferenceModule):
         Counter object)
         """
         "*** YOUR CODE HERE ***"
-
-        dist = util.Counter()
-        return dist
         
+        dist = util.Counter()
+        for particle in self.particles:
+            dist[particle] += 1.0
+        dist.normalize()
+        return dist
 
 class MarginalInference(InferenceModule):
     """
