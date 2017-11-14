@@ -278,17 +278,7 @@ class ParticleFilter(InferenceModule):
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
-        self.particles = []
 
-        posCount = len(self.legalPositions)
-            
-        for i in range(self.numParticles):
-            self.particles.append(self.legalPositions[i % posCount])
-
-        self.beliefs = self.getBeliefDistribution()
-        for i in range(self.numParticles):
-            self.beliefs[i] = 1;
-            
     def observe(self, observation, gameState):
         """
         Update beliefs based on the given distance observation. Make sure to
@@ -320,22 +310,8 @@ class ParticleFilter(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
-        if (noisyDistance == None):
-            for particle in self.particles:
-                particle = self.getJailPosition()
-                
-        else:
-           # for particle in util.nSample(self.beliefs,self.particles,10):
-            #for particle in util.sample(self.beliefs,self.particles):
-            for particle in self.particles:
-                trueDistance = util.manhattanDistance(particle, pacmanPosition)
-                self.beliefs[particle] = emissionModel[trueDistance] * self.beliefs[particle]
-                
-        if ((self.beliefs.totalCount) == 0):
-            initializeUniformly(gameState)
+        util.raiseNotDefined()
 
-        return self.beliefs
-            
     def elapseTime(self, gameState):
         """
         Update beliefs for a time step elapsing.
@@ -361,10 +337,7 @@ class ParticleFilter(InferenceModule):
         Counter object)
         """
         "*** YOUR CODE HERE ***"
-
-        dist = util.Counter()
-        return dist
-        
+        util.raiseNotDefined()
 
 class MarginalInference(InferenceModule):
     """
