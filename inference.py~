@@ -356,19 +356,10 @@ class ParticleFilter(InferenceModule):
         "*** YOUR CODE HERE ***"
         # COMPLETE / FIX THIS
         res = []
-
-        for part in self.particles:
-            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, part))
-            items = newPosDist.items()
-            distribution = [i[1] for i in items]
-            values = [i[0] for i in items]
-            res.append(util.nSample(distribution,values,1)[0])
-        self.particles = res
-        """res = []
         for part in self.particles:
             newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, part))
             res.append(util.sample(newPosDist))
-        self.particles = res"""
+        self.particles = res
 
     def getBeliefDistribution(self):
         """
