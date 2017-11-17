@@ -682,7 +682,7 @@ class JointParticleFilter:
             "*** YOUR CODE HERE ***"
             res = util.Counter()
             for ghostIndex in xrange(self.numGhosts):
-                newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, oldParticle), ghostIndex, self.ghostAgents[ghostIndex])
+                newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, list(oldParticle)), ghostIndex, self.ghostAgents[ghostIndex])
                 res[ghostIndex] = (util.sample(newPosDist)[ghostIndex])
                 
                 newlist = []
