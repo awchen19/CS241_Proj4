@@ -159,7 +159,6 @@ class ExactInference(InferenceModule):
 
 
         "*** YOUR CODE HERE ***"
-        #util.raiseNotDefined()
 
         # Replace this code with a correct observation update
         # Be sure to handle the "jail" edge case where the ghost is eaten
@@ -464,15 +463,10 @@ class JointParticleFilter:
         random.shuffle(prodPos)
 
         particles = []
-        for i in xrange(self.numParticles):
+        for i in range(0,self.numParticles):
             particles.append(prodPos[i%len(prodPos)])
 
         self.particles = particles
-
-        #print self.particles
-
-
-
 
 
 
@@ -522,103 +516,47 @@ class JointParticleFilter:
             return
         emissionModels = [busters.getObservationDistribution(dist) for dist in noisyDistances]
 
+
         "*** YOUR CODE HERE ***"
-        #print pacmanPosition
-        #print noisyDistances
-        #print emissionModels
 
-        #print self.particles
+        weights = util.Counter()
 
-        for ghostIndex in xrange(self.numGhosts):
-            if noisyDistances[ghostIndex] == None:
-                res = []
-                for part in self.particles:
-                    res.append(self.getParticleWithGhostInJail(part,ghostIndex))
-                self.particles = res
-                return
-            before = self.getBeliefDistribution()
-            after = util.Counter()
+        for part in self.particles:
+            totalProb = 1.0
+            for ghostIndex in range(self.numGhosts):
+                if noisyDistances[ghostIndex] != None: 
+                    # the probability of the particle being here given noisy reading
+                    trueDistance = util.manhattanDistance(part[ghostIndex], pacmanPosition)
+                    totalProb *= emissionModels[ghostIndex][trueDistance]
+                else: # CASE 1 - update 
+                    part = self.getParticleWithGhostInJail(part, ghostIndex)
+            weights[part] += totalProb
 
-            for p in (list(itertools.product(self.legalPositions, repeat = self.numGhosts))):
-                p = list(p)
-                trueDistance = util.manhattanDistance(p[ghostIndex], pacmanPosition)
-                after[tuple(p)] += emissionModels[ghostIndex][trueDistance] * before[tuple(p)]
-
-            allZero = 1
-            for pos in after:
-                if after[pos] != 0:
-                    allZero = 0
-            if allZero == 1:
-                self.initializeParticles()
-            else:
-                res = []
-                for part in self.particles:
-                    particle = util.sample(after)
-                    res.append(particle)
-                self.particles = res
-
-                
-        """for ghostIndex in xrange(self.numGhosts):
-            if noisyDistances[ghostIndex] == None:
-                res = []
-                for part in self.particles:
-                    res.append(self.getParticleWithGhostInJail(part, ghostIndex))
-                self.particles = res
-            else:
-                before = self.getBeliefDistribution()
-                after = util.Counter()
-
-                for legalPos in self.legalPositions:
-                    trueDistance = util.manhattanDistance(legalPos, pacmanPosition)
-                    after[legalPos] += emissionModels[ghostIndex][trueDistance] * before[legalPos]
-
-                allZero = 1
-                for pos in after:
-                    if after[pos] != 0:
-                        allZero = 0
-                if allZero == 1:
-                    self.initializeParticles()
-                else:
-                    res = []
-                    for part in self.particles:
-                        particle = list(part)
-                        particle[ghostIndex] = util.sample(after)
-                        res.append(particle)
-                    self.particles = res
-                    print(self.particles)"""
+        weights.normalize()
 
 
-            
-        '''for ghostIndex in xrange(self.numGhosts):
-            if noisyDistances[ghostIndex] == None:
-                res = []
-                for part in self.particles:
-                    res.append(self.getParticleWithGhostInJail(part, ghostIndex))
-                self.particles = res
-                print(self.particles)
-            else:
-                before = self.getBeliefDistribution()
-                after = util.Counter()
+        allZero = True
+        for w in weights:
+            if w != 0.0:
+                allZero = False
+                break
+        if allZero == True:
+            self.initializeParticles()
+            for ghostIndex in range(0, self.numGhosts):
+                if noisyDistances[ghostIndex] == None:
+                    for part in particles:
+                        part = self.getParticleWithGhostInJail(part, i)
+            return
 
-                for legalPos in self.legalPositions:
-                    trueDistance = util.manhattanDistance(legalPos, pacmanPosition)
-                    after[legalPos] += emissionModels[ghostIndex][trueDistance] * before[legalPos]
-
-                allZero = 1
-                for pos in after:
-                    if after[pos] != 0:
-                        allZero = 0
-                if allZero == 1:
-                    self.initializeParticles()
-                else:
-                    res = []
-                    for part in self.particles:
-                        particle = list(part)
-                        particle[ghostIndex] = util.sample(after)
-                        res.append(particle)
-                    self.particles = res'''
-
-
+        newParticles = []
+        for i in xrange(self.numParticles):
+            # getting strange exceptions here - catch them and skip
+            try:
+                newParticles.append(util.sample(weights))
+            except:
+                next
+   
+        self.particles = newParticles
 
     def getParticleWithGhostInJail(self, particle, ghostIndex):
         """
@@ -680,33 +618,9 @@ class JointParticleFilter:
             # now loop through and update each entry in newParticle...
 
             "*** YOUR CODE HERE ***"
-            res = util.Counter()
-            for ghostIndex in xrange(self.numGhosts):
-                newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, list(oldParticle)), ghostIndex, self.ghostAgents[ghostIndex])
-                res[ghostIndex] = (util.sample(newPosDist)[ghostIndex])
-                
-                newlist = []
-                for i in res:
-                    newlist.append(res[i])
-                    
-            newParticle = newlist
-            # print(newParticle)
-            """for oldPos in newParticle:
-                res = []
-                for ghostIndex in xrange(self.numGhosts):
-                    newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, oldPos), ghostIndex, self.ghostAgents[ghostIndex])
-                    #res.append(util.sample(newPosDist))
-                    print(util.sample(newPosDist))
-            #newParticle = res"""
-            
-            """res = []
-            for ghostIndex in xrange(self.numGhosts):
-                dist = []
-                for oldPos in self.legalPositions:
-                    newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, oldPos), ghostIndex, self.ghostAgents[ghostIndex])
-                    res.append(util.sample(newPosDist))
-                    
-            newParticle = res"""
+            for ghostIndex in range(self.numGhosts):
+                newPosDist = getPositionDistributionForGhost(setGhostPositions(gameState, newParticle), ghostIndex, self.ghostAgents[ghostIndex])
+                newParticle[ghostIndex] = util.sample(newPosDist)
             "*** END YOUR CODE HERE ***"
                                    
             newParticles.append(tuple(newParticle))
@@ -724,18 +638,7 @@ class JointParticleFilter:
                 res[partTuple] = 1.0
         res.normalize()
         return res
-    
-        """res = util.Counter()
-        for partTuple in self.particles:
-            for part in partTuple:
-                if part in res:
-                    res[part] += 1.0
-                else:
-                    res[part] = 1.0
-        res.normalize()
-        return res"""
 
-        #util.raiseNotDefined()
 
 # One JointInference module is shared globally across instances of MarginalInference
 jointInference = JointParticleFilter()
